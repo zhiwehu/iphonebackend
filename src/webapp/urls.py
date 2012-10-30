@@ -6,12 +6,13 @@ admin.autodiscover()
 
 from tastypie.api import Api
 
-from photo.api import UserResource, PhotoResource, CommentResource
+from photo.api import UserResource, PhotoResource, CommentResource, RelationshipResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(UserResource())
 v1_api.register(PhotoResource())
 v1_api.register(CommentResource())
+v1_api.register(RelationshipResource())
 
 photo_resource = PhotoResource()
 
