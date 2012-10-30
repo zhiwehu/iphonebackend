@@ -121,9 +121,11 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
     # Third party apps
+    'south',
     'relationships',
 
     # Self apps
+    'photo',
 
 )
 
