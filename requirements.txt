@@ -2,3 +2,4 @@ django
 south
 django-relationships
 django-tastypie
+django-model-utils
