@@ -5,3 +5,4 @@ local_settings.py
 env
 .idea
 dev.db
+site_media
