@@ -32,7 +32,7 @@ class PhotoResource(ModelResource):
 
 
 class CommentResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
+    user  = fields.ForeignKey(UserResource, 'user')
     photo = fields.ForeignKey(PhotoResource, 'photo')
 
     class Meta:
