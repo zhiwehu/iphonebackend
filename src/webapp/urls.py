@@ -21,7 +21,7 @@ photo_resource = PhotoResource()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'webapp.views.home', name='home'),
+    url(r'^$', 'photo.views.home', name='home'),
     # url(r'^webapp/', include('webapp.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
