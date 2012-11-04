@@ -19,3 +19,4 @@ class Comment(TimeStampedModel):
     user = models.ForeignKey(User, verbose_name=_(u'User'))
     photo = models.ForeignKey(Photo, verbose_name=_(u'Photo'))
     content = models.CharField(verbose_name=_(u'Content'), max_length=140)
+

@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
 
-from relationships.models import Relationship
+from relationships.models import Relationship, RelationshipStatus
 from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import DjangoAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource
 from tastypie import fields
 
-from models import Photo, Comment
+from models import Photo, Comment, Like
 from utils import get_user_list
 
 
@@ -66,9 +66,31 @@ class CommentResource(ModelResource):
         }
 
 
+class LikeResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user')
+    photo = fields.ForeignKey(PhotoResource, 'photo')
+
+    class Meta:
+        queryset = Like.objects.all()
+        resource_name = 'like'
+        authentication = BasicAuthentication()
+        authorization = DjangoAuthorization()
+        filtering = {
+            'user': ALL_WITH_RELATIONS,
+            'photo': ALL_WITH_RELATIONS,
+            }
+
+
+class RelationshipStatusResource(ModelResource):
+    class Meta:
+        queryset = RelationshipStatus.objects.all()
+        resource_name = 'relationshipstatus'
+
+
 class RelationshipResource(ModelResource):
     from_user = fields.ToOneField(UserResource, 'from_user')
     to_user = fields.ToOneField(UserResource, 'to_user')
+    status = fields.ToOneField(RelationshipStatusResource, 'status')
 
     class Meta:
         queryset = Relationship.objects.all()
