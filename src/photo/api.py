@@ -37,7 +37,7 @@ class UserResource(ModelResource):
 
 
 class PhotoResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
+    user = fields.ForeignKey(UserResource, 'user', full=True)
 
     class Meta:
         queryset = Photo.objects.all()
@@ -67,8 +67,8 @@ class CommentResource(ModelResource):
 
 
 class LikeResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
-    photo = fields.ForeignKey(PhotoResource, 'photo')
+    user = fields.ForeignKey(UserResource, 'user', full=True)
+    photo = fields.ForeignKey(PhotoResource, 'photo', full=True)
 
     class Meta:
         queryset = Like.objects.all()
