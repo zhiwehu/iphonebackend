@@ -7,7 +7,7 @@ admin.autodiscover()
 
 from tastypie.api import Api
 
-from photo.api import UserResource, PhotoResource, CommentResource, LikeResource, RelationshipResource, RelationshipStatusResource
+from photo.api import UserResource, PhotoResource, CommentResource, LikeResource, RelationshipResource, RelationshipStatusResource, ProfileResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(UserResource())
@@ -16,6 +16,7 @@ v1_api.register(CommentResource())
 v1_api.register(LikeResource())
 v1_api.register(RelationshipResource())
 v1_api.register(RelationshipStatusResource())
+v1_api.register(ProfileResource())
 
 photo_resource = PhotoResource()
 
@@ -29,6 +30,9 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
+
+    url(r'^api/v1/photo/upload/$', 'photo.views.api_upload_photo', name='api_upload_photo'),
+    url(r'^api/v1/avatar/upload/$', 'photo.views.api_upload_avatar', name='api_upload_avatar'),
 
     url(r'^api/', include(v1_api.urls))
 

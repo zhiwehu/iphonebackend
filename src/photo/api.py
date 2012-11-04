@@ -1,20 +1,33 @@
+from django.conf.urls import url
+from django.contrib.auth import authenticate, logout
 from django.contrib.auth.models import User
+from django.contrib.auth.views import login
 
 from relationships.models import Relationship, RelationshipStatus
 from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import DjangoAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
+from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie.resources import ModelResource
 from tastypie import fields
 
-from models import Photo, Comment, Like
+from models import Photo, Comment, Like, Profile
+from tastypie.utils import trailing_slash
 from utils import get_user_list
+
+class ProfileResource(ModelResource):
+    class Meta:
+        queryset = Profile.objects.all()
+        resource_name = 'profile'
+        authentication = BasicAuthentication()
+        authorization = DjangoAuthorization()
 
 
 class UserResource(ModelResource):
     followers = fields.ApiField(attribute='followers', null=True, blank=True, readonly=True)
     following = fields.ApiField(attribute='following', null=True, blank=True, readonly=True)
     friends = fields.ApiField(attribute='friends', null=True, blank=True, readonly=True)
+    profile = fields.OneToOneField(ProfileResource, 'profile', full=True, readonly=True)
 
     class Meta:
         queryset = User.objects.all()
@@ -25,6 +38,50 @@ class UserResource(ModelResource):
         filtering = {
             'email': ALL,
         }
+
+    def override_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/login%s$" %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('login'), name="api_login"),
+            url(r'^(?P<resource_name>%s)/logout%s$' %
+                (self._meta.resource_name, trailing_slash()),
+                self.wrap_view('logout'), name='api_logout'),
+            ]
+
+    def login(self, request, **kwargs):
+        self.method_check(request, allowed=['post'])
+
+        data = self.deserialize(request, request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
+
+        username = data.get('username', '')
+        password = data.get('password', '')
+
+        user = authenticate(username=username, password=password)
+        if user:
+            if user.is_active:
+                login(request, user)
+                return self.create_response(request, {
+                    'success': True
+                })
+            else:
+                return self.create_response(request, {
+                    'success': False,
+                    'reason': 'disabled',
+                    }, HttpForbidden )
+        else:
+            return self.create_response(request, {
+                'success': False,
+                'reason': 'incorrect',
+                }, HttpUnauthorized )
+
+    def logout(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+        if request.user and request.user.is_authenticated():
+            logout(request)
+            return self.create_response(request, { 'success': True })
+        else:
+            return self.create_response(request, { 'success': False }, HttpUnauthorized)
 
     def dehydrate_followers(self, bundle):
         return get_user_list(bundle.obj.relationships.followers())
@@ -47,6 +104,7 @@ class PhotoResource(ModelResource):
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
+            'is_publish': ALL,
         }
 
 
