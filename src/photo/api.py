@@ -146,8 +146,8 @@ class RelationshipStatusResource(ModelResource):
 
 
 class RelationshipResource(ModelResource):
-    from_user = fields.ToOneField(UserResource, 'from_user')
-    to_user = fields.ToOneField(UserResource, 'to_user')
+    from_user = fields.ToOneField(UserResource, 'from_user', full=True)
+    to_user = fields.ToOneField(UserResource, 'to_user', full=True)
     status = fields.ToOneField(RelationshipStatusResource, 'status')
 
     class Meta:
