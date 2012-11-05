@@ -27,7 +27,7 @@ class UserResource(ModelResource):
     followers = fields.ApiField(attribute='followers', null=True, blank=True, readonly=True)
     following = fields.ApiField(attribute='following', null=True, blank=True, readonly=True)
     friends = fields.ApiField(attribute='friends', null=True, blank=True, readonly=True)
-    profile = fields.OneToOneField(ProfileResource, 'profile', full=True, readonly=True)
+    profile = fields.OneToOneField(ProfileResource, 'profile', null=True, blank=True, full=True, readonly=True)
 
     class Meta:
         queryset = User.objects.all()
