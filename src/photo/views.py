@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate
 from django.http import Http404, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -6,7 +5,6 @@ from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 
 from models import Photo, Avatar
-from api import UserResource
 from tastypie.authentication import BasicAuthentication
 
 def home(request,

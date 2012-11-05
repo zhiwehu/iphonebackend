@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import login
 
 from relationships.models import Relationship, RelationshipStatus
+from sorl.thumbnail import get_thumbnail
 from tastypie.authentication import BasicAuthentication
 from tastypie.authorization import DjangoAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -47,12 +48,13 @@ class UserResource(ModelResource):
             url(r'^(?P<resource_name>%s)/logout%s$' %
                 (self._meta.resource_name, trailing_slash()),
                 self.wrap_view('logout'), name='api_logout'),
-            ]
+        ]
 
     def login(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
 
-        data = self.deserialize(request, request.raw_post_data, format=request.META.get('CONTENT_TYPE', 'application/json'))
+        data = self.deserialize(request, request.raw_post_data,
+            format=request.META.get('CONTENT_TYPE', 'application/json'))
 
         username = data.get('username', '')
         password = data.get('password', '')
@@ -68,20 +70,20 @@ class UserResource(ModelResource):
                 return self.create_response(request, {
                     'success': False,
                     'reason': 'disabled',
-                    }, HttpForbidden )
+                }, HttpForbidden)
         else:
             return self.create_response(request, {
                 'success': False,
                 'reason': 'incorrect',
-                }, HttpUnauthorized )
+            }, HttpUnauthorized)
 
     def logout(self, request, **kwargs):
         self.method_check(request, allowed=['get'])
         if request.user and request.user.is_authenticated():
             logout(request)
-            return self.create_response(request, { 'success': True })
+            return self.create_response(request, {'success': True})
         else:
-            return self.create_response(request, { 'success': False }, HttpUnauthorized)
+            return self.create_response(request, {'success': False}, HttpUnauthorized)
 
     def dehydrate_followers(self, bundle):
         return get_user_list(bundle.obj.relationships.followers())
@@ -95,6 +97,7 @@ class UserResource(ModelResource):
 
 class PhotoResource(ModelResource):
     user = fields.ForeignKey(UserResource, 'user', full=True)
+    thumbnail = fields.ApiField(attribute='thumbnail', null=True, blank=True, readonly=True)
 
     class Meta:
         queryset = Photo.objects.all()
@@ -106,6 +109,17 @@ class PhotoResource(ModelResource):
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'is_publish': ALL,
         }
+
+    def dehydrate_thumbnail(self, bundle):
+        if bundle.obj.file:
+            im = get_thumbnail(bundle.obj.file, '100x100', crop='center', quality=99)
+            return {
+                'file_url': im.url
+            }
+        else:
+            return {
+                'file_url': None
+            }
 
 
 class CommentResource(ModelResource):
@@ -136,7 +150,7 @@ class LikeResource(ModelResource):
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
-            }
+        }
 
 
 class RelationshipStatusResource(ModelResource):

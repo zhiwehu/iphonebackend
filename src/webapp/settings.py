@@ -128,6 +128,7 @@ INSTALLED_APPS = (
     # Third party apps
     'south',
     'relationships',
+    'sorl.thumbnail',
 
     # Self apps
     'photo',
