@@ -63,9 +63,11 @@ class UserResource(ModelResource):
         if user:
             if user.is_active:
                 login(request, user)
-                return self.create_response(request, {
-                    'success': True
-                })
+                bundle = self.build_bundle(obj=user, request=request)
+                bundle = self.full_dehydrate(bundle)
+                bundle = self.alter_detail_data_to_serialize(request, bundle)
+                return self.create_response(request, bundle)
+
             else:
                 return self.create_response(request, {
                     'success': False,
