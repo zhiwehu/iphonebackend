@@ -2,12 +2,15 @@ from django.conf.urls import url
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.views import login
+from django.core.urlresolvers import resolve
+from django.db import IntegrityError
 
 from relationships.models import Relationship, RelationshipStatus
 from sorl.thumbnail import get_thumbnail
-from tastypie.authentication import BasicAuthentication
-from tastypie.authorization import DjangoAuthorization
+from tastypie.authentication import BasicAuthentication, Authentication
+from tastypie.authorization import DjangoAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
+from tastypie.exceptions import BadRequest
 from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie.resources import ModelResource
 from tastypie import fields
@@ -16,12 +19,84 @@ from models import Photo, Comment, Like, Profile
 from tastypie.utils import trailing_slash
 from utils import get_user_list
 
+
+class ReadonlyAuthentication(BasicAuthentication):
+    def is_authenticated(self, request, **kwargs):
+        if request.method == 'GET':
+            return True
+        else:
+            return super(ReadonlyAuthentication, self).is_authenticated(request, **kwargs)
+
+
+class OwnerAuthorization(DjangoAuthorization):
+    def get_object(self, request):
+        try:
+            pk = resolve(request.path)[2]['pk']
+        except IndexError, KeyError:
+            object = None # or raise Exception('Wrong URI')
+        else:
+            try:
+                object = self.resource_meta.object_class.objects.get(pk=pk)
+            except self.resource_meta.DoesNotExist:
+                object = None
+        return object
+
+    def is_authorized(self, request, object=None):
+        if request.method == 'PUT' or request.method == 'PATCH':
+            object = self.get_object(request)
+            if object:
+                try:
+                    if object == request.user or object.user == request.user:
+                        return True
+                except:
+                    pass
+            return False
+        else:
+            return super(OwnerAuthorization, self).is_authorized(request, object)
+
+    def read_detail(self, object_list, bundle):
+        """
+        Returns either ``True`` if the user is allowed to read the object in
+        question or throw ``Unauthorized`` if they are not.
+        Returns ``True`` by default.
+        """
+        return True
+
+
 class ProfileResource(ModelResource):
     class Meta:
+        allowed_methods = ['get', 'put']
         queryset = Profile.objects.all()
         resource_name = 'profile'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
+
+
+class CreateUserResource(ModelResource):
+    profile = fields.OneToOneField(ProfileResource, 'profile', null=True, blank=True)
+
+    class Meta:
+        allowed_methods = ['post']
+        object_class = User
+        authentication = Authentication()
+        authorization = Authorization()
+        include_resource_uri = False
+        fields = ['username', 'email', 'password']
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        try:
+            bundle = super(CreateUserResource, self).obj_create(bundle, request, **kwargs)
+            bundle.obj.set_password(bundle.data.get('password'))
+            bundle.obj.save()
+
+            birthday = bundle.data.get('birthday')
+            gender = bundle.data.get('gender')
+            avatar_url = bundle.data.get('avatar_url')
+            Profile.objects.create(user=bundle.obj, birthday=birthday, gender=gender, avatar_url=avatar_url)
+
+            return bundle
+        except IntegrityError as e:
+            raise BadRequest(e.message)
 
 
 class UserResource(ModelResource):
@@ -31,10 +106,11 @@ class UserResource(ModelResource):
     profile = fields.OneToOneField(ProfileResource, 'profile', null=True, blank=True, full=True, readonly=True)
 
     class Meta:
+        allowed_methods = ['get', 'put']
         queryset = User.objects.all()
         resource_name = 'user'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
         excludes = ['password', 'is_active', 'is_staff', 'is_superuser']
         filtering = {
             'email': ALL,
@@ -106,8 +182,8 @@ class PhotoResource(ModelResource):
     class Meta:
         queryset = Photo.objects.all()
         resource_name = 'photo'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
@@ -140,8 +216,8 @@ class CommentResource(ModelResource):
     class Meta:
         queryset = Comment.objects.all()
         resource_name = 'comment'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
@@ -156,8 +232,8 @@ class LikeResource(ModelResource):
     class Meta:
         queryset = Like.objects.all()
         resource_name = 'like'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
@@ -168,6 +244,7 @@ class RelationshipStatusResource(ModelResource):
     class Meta:
         queryset = RelationshipStatus.objects.all()
         resource_name = 'relationshipstatus'
+        allowed_method = ['get']
 
 
 class RelationshipResource(ModelResource):
@@ -178,8 +255,8 @@ class RelationshipResource(ModelResource):
     class Meta:
         queryset = Relationship.objects.all()
         resource_name = 'relationship'
-        authentication = BasicAuthentication()
-        authorization = DjangoAuthorization()
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
         filtering = {
             'from_user': ALL_WITH_RELATIONS,
             'to_user': ALL_WITH_RELATIONS,

@@ -27,7 +27,8 @@ def api_upload_photo(request):
             photo = Photo(user=request.user, title=request.POST.get('title', None), file=request.FILES['file'])
             photo.save()
 
-            response_data={"file_url": photo.file.url}
+            # TODO the api resource_uri need to dynamic
+            response_data={"resource_uri": "/api/v1/photo/%d/" % (photo.id) , "file_url": photo.file.url}
             return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
     raise Http404
 
@@ -41,24 +42,3 @@ def api_upload_avatar(request):
         response_data={"file_url": avatar.file.url}
         return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
     raise Http404
-
-'''
-def signin(request):
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-
-def signup(request):
-    email = request.POST.get('email')
-    password = request.POST.get('password')
-    birthday = request.POST.get('birthday')
-    gender = request.POST.get('gender')
-    first_name = request.POST.get('first_name')
-    last_name = request.POST.get('last_name')
-    avatar_url = request.POST.get('avatar_url')
-
-def get_user_today_photo(request):
-    user_id = request.GET.get('user')
-
-def get_popular_photo(request):
-    pass
-'''
