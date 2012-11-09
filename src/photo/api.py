@@ -100,6 +100,8 @@ class UserResource(ModelResource):
 class PhotoResource(ModelResource):
     user = fields.ForeignKey(UserResource, 'user', full=True)
     thumbnail = fields.ApiField(attribute='thumbnail', null=True, blank=True, readonly=True)
+    like_count = fields.IntegerField(attribute='like_count', default=0, readonly=True)
+    comment_count = fields.IntegerField(attribute='comment_count', default=0, readonly=True)
 
     class Meta:
         queryset = Photo.objects.all()
@@ -111,6 +113,13 @@ class PhotoResource(ModelResource):
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'is_publish': ALL,
         }
+
+    def dehydrate_like_count(self, bundle):
+        like_count = Like.objects.filter(photo=bundle.obj).count()
+        return like_count
+
+    def dehydrate_comment_count(self, bundle):
+        return bundle.obj.comment_set.count()
 
     def dehydrate_thumbnail(self, bundle):
         if bundle.obj.file:
