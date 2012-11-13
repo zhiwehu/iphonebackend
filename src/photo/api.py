@@ -180,8 +180,7 @@ class PhotoResource(ModelResource):
     comment_count = fields.IntegerField(attribute='comment_count', default=0, readonly=True)
 
     class Meta:
-        object_class = Photo
-        query_set = Photo.objects.all().order_by('-created')
+        queryset = Photo.objects.all().order_by('-created')
         resource_name = 'photo'
         authentication = ReadonlyAuthentication()
         authorization = OwnerAuthorization()
@@ -211,7 +210,7 @@ class PhotoResource(ModelResource):
 
 
 class CommentResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
+    user = fields.ForeignKey(UserResource, 'user', full=True)
     photo = fields.ForeignKey(PhotoResource, 'photo')
 
     class Meta:
