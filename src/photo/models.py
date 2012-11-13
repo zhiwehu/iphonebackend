@@ -10,16 +10,22 @@ class Photo(TimeStampedModel):
     file = models.ImageField(verbose_name=_(u'Photo File'), upload_to='photo')
     is_publish = models.BooleanField(verbose_name=_(u'Is Publish'), default=False)
 
+    def __unicode__(self):
+        return '%s: %s' % (self.title, self.file.name)
+
 
 class Like(TimeStampedModel):
     user = models.ForeignKey(User, verbose_name=_(u'User'))
-    photo = models.OneToOneField(Photo, verbose_name=_(u'Photo'))
+    photo = models.ForeignKey(Photo, verbose_name=_(u'Photo'))
 
 
 class Comment(TimeStampedModel):
     user = models.ForeignKey(User, verbose_name=_(u'User'))
     photo = models.ForeignKey(Photo, verbose_name=_(u'Photo'))
     content = models.CharField(verbose_name=_(u'Content'), max_length=140)
+
+    def __unicode__(self):
+        return self.content
 
 
 class Profile(models.Model):
@@ -35,3 +41,9 @@ class Profile(models.Model):
 
 class Avatar(TimeStampedModel):
     file = models.ImageField(verbose_name=_(u'Avatar File'), upload_to='avatar')
+
+
+class Report(TimeStampedModel):
+    user = models.ForeignKey(User, verbose_name=_(u'User'), null=True, blank=True)
+    photo = models.ForeignKey(Photo, verbose_name=_(u'Photo'))
+    description = models.TextField(verbose_name=_(u'Description'), max_length=1024)

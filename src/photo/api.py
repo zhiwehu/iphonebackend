@@ -15,7 +15,7 @@ from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie.resources import ModelResource
 from tastypie import fields
 
-from models import Photo, Comment, Like, Profile
+from models import Photo, Comment, Like, Profile, Report
 from tastypie.utils import trailing_slash
 from utils import get_user_list
 
@@ -180,7 +180,8 @@ class PhotoResource(ModelResource):
     comment_count = fields.IntegerField(attribute='comment_count', default=0, readonly=True)
 
     class Meta:
-        queryset = Photo.objects.all()
+        object_class = Photo
+        query_set = Photo.objects.all().order_by('-created')
         resource_name = 'photo'
         authentication = ReadonlyAuthentication()
         authorization = OwnerAuthorization()
@@ -214,7 +215,7 @@ class CommentResource(ModelResource):
     photo = fields.ForeignKey(PhotoResource, 'photo')
 
     class Meta:
-        queryset = Comment.objects.all()
+        queryset = Comment.objects.all().order_by('-created')
         resource_name = 'comment'
         authentication = ReadonlyAuthentication()
         authorization = OwnerAuthorization()
@@ -261,3 +262,12 @@ class RelationshipResource(ModelResource):
             'from_user': ALL_WITH_RELATIONS,
             'to_user': ALL_WITH_RELATIONS,
         }
+
+
+class ReportResource(ModelResource):
+    class Meta:
+        resource_name = 'report'
+        allowed_methods = ['post']
+        object_class = Report
+        authentication = Authentication()
+        authorization = Authorization()
