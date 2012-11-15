@@ -264,6 +264,8 @@ class RelationshipResource(ModelResource):
 
 
 class ReportResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user', null=True, blank=True)
+    photo = fields.ForeignKey(PhotoResource, 'photo')
     class Meta:
         resource_name = 'report'
         allowed_methods = ['post']
