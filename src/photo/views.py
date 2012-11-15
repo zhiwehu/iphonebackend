@@ -61,3 +61,21 @@ def api_user_unfollow(request):
             response_data={'status':'success'}
             return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
     raise Http404
+
+
+@csrf_exempt
+def api_user_follow(request):
+    if request.method == 'POST':
+        basic_auth = BasicAuthentication()
+        if basic_auth.is_authenticated(request):
+            to_user_id = int(request.POST.get("to_user", 0))
+            try:
+                to_user = User.objects.get(id=to_user_id)
+            except User.DoesNotExist:
+                raise Http404
+            from_user = request.user
+            from_user.relationships.add(to_user)
+
+            response_data={'status':'success'}
+            return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
+    raise Http404
