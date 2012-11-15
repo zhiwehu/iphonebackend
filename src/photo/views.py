@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -41,4 +42,22 @@ def api_upload_avatar(request):
         avatar.save()
         response_data={"file_url": avatar.file.url}
         return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
+    raise Http404
+
+
+@csrf_exempt
+def api_user_unfollow(request):
+    if request.method == 'POST':
+        basic_auth = BasicAuthentication()
+        if basic_auth.is_authenticated(request):
+            to_user_id = int(request.POST.get("to_user", 0))
+            try:
+                to_user = User.objects.get(id=to_user_id)
+            except User.DoesNotExist:
+                raise Http404
+            from_user = request.user
+            from_user.relationships.remove(to_user)
+
+            response_data={'status':'success'}
+            return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
     raise Http404

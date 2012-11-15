@@ -35,6 +35,7 @@ urlpatterns = patterns('',
 
     url(r'^api/v1/photo/upload/$', 'photo.views.api_upload_photo', name='api_upload_photo'),
     url(r'^api/v1/avatar/upload/$', 'photo.views.api_upload_avatar', name='api_upload_avatar'),
+    url(r'^api/v1/user/unfollow/$', 'photo.views.api_user_unfollow', name='api_user_unfollow'),
 
     url(r'^api/', include(v1_api.urls))
 
