@@ -5,7 +5,8 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 
-from models import Photo, Avatar
+from models import Photo, Avatar, Message
+from utils import get_photo_info
 from tastypie.authentication import BasicAuthentication
 
 def home(request,
@@ -27,6 +28,14 @@ def api_upload_photo(request):
         if basic_auth.is_authenticated(request):
             photo = Photo(user=request.user, title=request.POST.get('title', None), file=request.FILES['file'])
             photo.save()
+
+            at_users = request.POST.get('atusers', '').split(',')
+            for user_id in at_users:
+                try:
+                    to_user = User.objects.get(id=int(user_id))
+                    message = Message(from_user=request.user, to_user=to_user, description=get_photo_info(photo)).save()
+                except Exception:
+                    pass
 
             # TODO the api resource_uri need to dynamic
             response_data={"resource_uri": "/api/v1/photo/%d/" % (photo.id) , "file_url": photo.file.url}

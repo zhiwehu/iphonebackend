@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from models import Photo, Comment, Like, Profile, Avatar, Report
+from models import Photo, Comment, Like, Profile, Avatar, Report, Message
 
 class PhotoAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'file', 'user', 'is_publish', 'created')
@@ -26,9 +26,14 @@ class ReportAdmin(admin.ModelAdmin):
             return ''
     photo_url.allow_tags = True
 
+
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('from_user', 'to_user', 'description', 'is_read', 'created')
+
 admin.site.register(Photo, PhotoAdmin)
 admin.site.register(Comment, CommentAdmin)
 admin.site.register(Like, LikeAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Avatar, AvatarAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(Message, MessageAdmin)

@@ -15,7 +15,7 @@ from tastypie.http import HttpForbidden, HttpUnauthorized
 from tastypie.resources import ModelResource
 from tastypie import fields
 
-from models import Photo, Comment, Like, Profile, Report
+from models import Photo, Comment, Like, Profile, Report, Message
 from tastypie.utils import trailing_slash
 from utils import get_user_list
 
@@ -272,3 +272,18 @@ class ReportResource(ModelResource):
         object_class = Report
         authentication = Authentication()
         authorization = Authorization()
+
+
+class MessageResource(ModelResource):
+    from_user = fields.ForeignKey(UserResource, 'from_user', full=True, readonly=True)
+    to_user = fields.ForeignKey(UserResource, 'to_user', full=True, readonly=True)
+    class Meta:
+        queryset = Message.objects.all()
+        resource_name = 'message'
+        allowed_method = ['get', 'put']
+        authentication = ReadonlyAuthentication()
+        authorization = OwnerAuthorization()
+        filtering = {
+            'from_user': ALL_WITH_RELATIONS,
+            'to_user': ALL_WITH_RELATIONS,
+            }

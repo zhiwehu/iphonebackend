@@ -47,3 +47,10 @@ class Report(TimeStampedModel):
     user = models.ForeignKey(User, verbose_name=_(u'User'), null=True, blank=True)
     photo = models.ForeignKey(Photo, verbose_name=_(u'Photo'))
     description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
+
+
+class Message(TimeStampedModel):
+    from_user = models.ForeignKey(User, verbose_name=_(u'From User'), related_name='message_from_user')
+    to_user = models.ForeignKey(User, verbose_name=_(u'To User'), related_name='message_to_user')
+    is_read = models.BooleanField(verbose_name=_(u'Is Read?'), default=False)
+    description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
