@@ -5,3 +5,5 @@ django-tastypie
 django-model-utils
 PIL
 sorl-thumbnail
+boto
+django-storages
