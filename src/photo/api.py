@@ -217,7 +217,7 @@ class CommentResource(ModelResource):
         queryset = Comment.objects.all().order_by('-created')
         resource_name = 'comment'
         authentication = ReadonlyAuthentication()
-        #authorization = OwnerAuthorization()
+        authorization = Authorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
@@ -233,7 +233,7 @@ class LikeResource(ModelResource):
         queryset = Like.objects.all()
         resource_name = 'like'
         authentication = ReadonlyAuthentication()
-        #authorization = OwnerAuthorization()
+        authorization = Authorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
