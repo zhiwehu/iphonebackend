@@ -3,11 +3,23 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
+from uuid import uuid4
+import os
+def get_random_filename(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = "%s.%s" % (str(uuid4()), ext)
+    return os.path.join('photo/', filename)
+
+def get_random_avatar_filename(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = "%s.%s" % (str(uuid4()), ext)
+    return os.path.join('avatar/', filename)
+
 
 class Photo(TimeStampedModel):
     user = models.ForeignKey(User, verbose_name=_(u'User'))
     title = models.CharField(verbose_name=_(u'Title'), max_length=255, null=True, blank=True)
-    file = models.ImageField(verbose_name=_(u'Photo File'), upload_to='photo')
+    file = models.ImageField(verbose_name=_(u'Photo File'), upload_to=get_random_filename)
     is_publish = models.BooleanField(verbose_name=_(u'Is Publish'), default=False)
 
     def __unicode__(self):
@@ -40,7 +52,7 @@ class Profile(models.Model):
 
 
 class Avatar(TimeStampedModel):
-    file = models.ImageField(verbose_name=_(u'Avatar File'), upload_to='avatar')
+    file = models.ImageField(verbose_name=_(u'Avatar File'), upload_to=get_random_avatar_filename)
 
 
 class Report(TimeStampedModel):
