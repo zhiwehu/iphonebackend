@@ -1,7 +1,7 @@
 django
 south
 django-relationships
-django-tastypie
+-e git+https://github.com/toastdriven/django-tastypie.git@63055a7a3c8bf53eac1b879c3bebfd6898416721#egg=django_tastypie-dev
 django-model-utils
 PIL
 sorl-thumbnail

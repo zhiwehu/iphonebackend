@@ -7,7 +7,7 @@ from django.db import IntegrityError
 
 from relationships.models import Relationship, RelationshipStatus
 from sorl.thumbnail import get_thumbnail
-from tastypie.authentication import BasicAuthentication, Authentication
+from tastypie.authentication import BasicAuthentication, Authentication, ApiKeyAuthentication, MultiAuthentication
 from tastypie.authorization import DjangoAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
@@ -69,7 +69,8 @@ class ProfileResource(ModelResource):
         allowed_methods = ['get', 'put']
         queryset = Profile.objects.all()
         resource_name = 'profile'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = OwnerAuthorization()
 
 
@@ -111,7 +112,8 @@ class UserResource(ModelResource):
         allowed_methods = ['get', 'put']
         queryset = User.objects.all()
         resource_name = 'user'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = OwnerAuthorization()
         excludes = ['password', 'is_active', 'is_staff', 'is_superuser']
         filtering = {
@@ -192,7 +194,8 @@ class PhotoResource(ModelResource):
     class Meta:
         queryset = Photo.objects.all().order_by('-created')
         resource_name = 'photo'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = OwnerAuthorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
@@ -226,7 +229,8 @@ class CommentResource(ModelResource):
     class Meta:
         queryset = Comment.objects.all().order_by('-created')
         resource_name = 'comment'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = Authorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
@@ -242,7 +246,8 @@ class LikeResource(ModelResource):
     class Meta:
         queryset = Like.objects.all()
         resource_name = 'like'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = Authorization()
         filtering = {
             'user': ALL_WITH_RELATIONS,
@@ -265,7 +270,8 @@ class RelationshipResource(ModelResource):
     class Meta:
         queryset = Relationship.objects.all()
         resource_name = 'relationship'
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = OwnerAuthorization()
         filtering = {
             'from_user': ALL_WITH_RELATIONS,
@@ -291,7 +297,8 @@ class MessageResource(ModelResource):
         queryset = Message.objects.all()
         resource_name = 'message'
         allowed_method = ['get', 'put']
-        authentication = ReadonlyAuthentication()
+        #authentication = ReadonlyAuthentication()
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
         authorization = OwnerAuthorization()
         filtering = {
             'from_user': ALL_WITH_RELATIONS,
