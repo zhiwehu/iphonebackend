@@ -66,3 +66,7 @@ class Message(TimeStampedModel):
     to_user = models.ForeignKey(User, verbose_name=_(u'To User'), related_name='message_to_user')
     is_read = models.BooleanField(verbose_name=_(u'Is Read?'), default=False)
     description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
+
+from tastypie.models import create_api_key
+
+models.signals.post_save.connect(create_api_key, sender=User)

@@ -7,3 +7,4 @@ PIL
 sorl-thumbnail
 boto
 django-storages
+django-allauth

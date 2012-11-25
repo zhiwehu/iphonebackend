@@ -1,4 +1,5 @@
 # Django settings for webapp project.
+from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS, AUTHENTICATION_BACKENDS
 import os
 
 DEBUG = True
@@ -130,6 +131,12 @@ INSTALLED_APPS = (
     'south',
     'relationships',
     'sorl.thumbnail',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.twitter',
+    'tastypie',
 
     # Self apps
     'photo',
@@ -169,6 +176,14 @@ DEFAULT_FILE_STORAGE = os.environ.get('DEFAULT_FILE_STORAGE')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'django.core.context_processors.request',
+    'allauth.account.context_processors.account',
+    'allauth.socialaccount.context_processors.socialaccount'
+    )
+
+AUTHENTICATION_BACKENDS += ('allauth.account.auth_backends.AuthenticationBackend',)
 
 try:
     from local_settings import *

@@ -1,3 +1,14 @@
+import urllib
+from allauth.socialaccount import providers, requests
+from allauth.socialaccount.helpers import complete_social_login, render_authentication_error
+from allauth.socialaccount.models import SocialToken, SocialLogin, SocialAccount
+from allauth.socialaccount.providers import oauth
+from allauth.socialaccount.providers.facebook.forms import FacebookConnectForm
+from allauth.socialaccount.providers.facebook.provider import FacebookProvider
+from allauth.socialaccount.providers.facebook.views import fb_complete_login
+from allauth.socialaccount.providers.oauth.client import OAuthError
+from allauth.socialaccount.providers.twitter.provider import TwitterProvider
+from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
 from django.contrib.auth.models import User
 from django.http import Http404, HttpResponse
 from django.shortcuts import render_to_response
@@ -6,6 +17,8 @@ from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 
 from models import Photo, Avatar, Message
+from oauth2 import Token, Consumer, Client
+from photo.api import UserResource
 from utils import get_photo_info
 from tastypie.authentication import BasicAuthentication
 
@@ -88,3 +101,88 @@ def api_user_follow(request):
             response_data={'status':'success'}
             return HttpResponse(simplejson.dumps(response_data), mimetype='application/json')
     raise Http404
+
+
+@csrf_exempt
+def api_facebook_connect_by_token(request):
+    ret = None
+    if request.method == 'POST':
+        form = FacebookConnectForm(request.POST)
+        if form.is_valid():
+            try:
+                app = providers.registry.by_id(FacebookProvider.id)\
+                .get_app(request)
+                access_token = form.cleaned_data['access_token']
+                token = SocialToken(app=app,
+                    token=access_token)
+                login = fb_complete_login(app, token)
+                login.token = token
+                login.state = SocialLogin.state_from_request(request)
+                ret = complete_social_login(request, login)
+            except:
+                # FIXME: Catch only what is needed
+                pass
+    if not ret:
+        raise Http404
+    user_source = UserResource()
+    bundle = user_source.build_bundle(obj=request.user, request=request)
+    bundle = user_source.full_dehydrate(bundle)
+    bundle = user_source.alter_detail_data_to_serialize(request, bundle)
+    return user_source.create_response(request, bundle)
+
+
+@csrf_exempt
+def api_twitter_connect_by_token(request):
+    ret = None
+    if request.method == 'POST':
+        try:
+            adapter = TwitterOAuthAdapter()
+            app = adapter.get_provider().get_app(request)
+            access_token = request.POST.get('access_token')
+            access_token_secret = request.POST.get('access_token_secret')
+            token = SocialToken(app=app, token=access_token)
+            login = twitter_complete_login(request, app, access_token, access_token_secret)
+
+            login.token = token
+            login.state = SocialLogin.state_from_request(request)
+            ret = complete_social_login(request, login)
+        except Exception as e:
+            # FIXME: Catch only what is needed
+            pass
+
+    if not ret:
+        raise Http404
+    user_source = UserResource()
+    bundle = user_source.build_bundle(obj=request.user, request=request)
+    bundle = user_source.full_dehydrate(bundle)
+    bundle = user_source.alter_detail_data_to_serialize(request, bundle)
+    return user_source.create_response(request, bundle)
+
+
+def twitter_complete_login(request, app, access_token, access_token_secret):
+    url = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+    user = simplejson.loads(get_twitter_user_info(url, app, access_token, access_token_secret))
+    extra_data = user
+    uid = extra_data['id']
+    user = User(username=extra_data['screen_name'])
+    account = SocialAccount(user=user,
+        uid=uid,
+        provider=TwitterProvider.id,
+        extra_data=extra_data)
+    return SocialLogin(account)
+
+
+def get_twitter_user_info(url, app, access_token, access_token_secret):
+    token = Token(access_token, access_token_secret)
+    consumer = Consumer(app.key, app.secret)
+    client = Client(consumer, token)
+    method="GET"
+    params=dict()
+    headers=dict()
+    body = urllib.urlencode(params)
+    response, content = client.request(url, method=method, headers=headers, body=body)
+
+    if response['status'] != '200':
+        raise OAuthError('OAuth Error')
+
+    return content

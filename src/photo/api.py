@@ -12,6 +12,7 @@ from tastypie.authorization import DjangoAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
 from tastypie.http import HttpForbidden, HttpUnauthorized
+from tastypie.models import ApiKey
 from tastypie.resources import ModelResource
 from tastypie import fields
 
@@ -103,6 +104,7 @@ class UserResource(ModelResource):
     followers = fields.ApiField(attribute='followers', null=True, blank=True, readonly=True)
     following = fields.ApiField(attribute='following', null=True, blank=True, readonly=True)
     friends = fields.ApiField(attribute='friends', null=True, blank=True, readonly=True)
+    apikey = fields.ApiField(attribute='apikey', null=True, blank=True, readonly=True)
     profile = fields.OneToOneField(ProfileResource, 'profile', null=True, blank=True, full=True, readonly=True)
 
     class Meta:
@@ -171,6 +173,14 @@ class UserResource(ModelResource):
 
     def dehydrate_friends(self, bundle):
         return get_user_list(bundle.obj.relationships.friends())
+
+    def dehydrate_apikey(self, bundle):
+        try:
+            apikey = ApiKey.objects.get(user=bundle.obj)
+            return apikey.key
+        except:
+            pass
+        return ''
 
 
 class PhotoResource(ModelResource):

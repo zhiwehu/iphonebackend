@@ -39,6 +39,9 @@ urlpatterns = patterns('',
     url(r'^api/v1/user/unfollow/$', 'photo.views.api_user_unfollow', name='api_user_unfollow'),
     url(r'^api/v1/user/follow/$', 'photo.views.api_user_follow', name='api_user_follow'),
 
+    url(r'^api/v1/facebook/connect/$', 'photo.views.api_facebook_connect_by_token', name='api_facebook_connect_by_token'),
+    url(r'^api/v1/twitter/connect/$', 'photo.views.api_twitter_connect_by_token', name='api_twitter_connect_by_token'),
+
     url(r'^api/', include(v1_api.urls))
 
 
