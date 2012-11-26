@@ -1,8 +1,7 @@
 import urllib
-from allauth.socialaccount import providers, requests
-from allauth.socialaccount.helpers import complete_social_login, render_authentication_error
+from allauth.socialaccount import providers
+from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.models import SocialToken, SocialLogin, SocialAccount
-from allauth.socialaccount.providers import oauth
 from allauth.socialaccount.providers.facebook.forms import FacebookConnectForm
 from allauth.socialaccount.providers.facebook.provider import FacebookProvider
 from allauth.socialaccount.providers.facebook.views import fb_complete_login
@@ -16,7 +15,7 @@ from django.template import RequestContext
 from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 
-from models import Photo, Avatar, Message
+from models import Photo, Avatar, Message, Profile
 from oauth2 import Token, Consumer, Client
 from photo.api import UserResource
 from utils import get_photo_info
@@ -124,6 +123,10 @@ def api_facebook_connect_by_token(request):
                 pass
     if not ret:
         raise Http404
+
+    profile = Profile.objects.get_or_create(user=request.user)[0]
+    profile.avatar_url = login.account.get_avatar_url()
+    profile.save()
     user_source = UserResource()
     bundle = user_source.build_bundle(obj=request.user, request=request)
     bundle = user_source.full_dehydrate(bundle)
@@ -152,6 +155,10 @@ def api_twitter_connect_by_token(request):
 
     if not ret:
         raise Http404
+
+    profile = Profile.objects.get_or_create(user=request.user)[0]
+    profile.avatar_url = login.account.get_avatar_url()
+    profile.save()
     user_source = UserResource()
     bundle = user_source.build_bundle(obj=request.user, request=request)
     bundle = user_source.full_dehydrate(bundle)
