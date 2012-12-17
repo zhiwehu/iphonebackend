@@ -7,6 +7,6 @@ def get_user_list(user_list):
     return result
 
 
-def get_photo_info(photo):
+def get_photo_info(photo, action='@'):
     im = get_thumbnail(photo.file, '100x100', crop='center', quality=99)
-    return '{"photo_id":"%d", "thumbnail_url":"%s", "photo_url":"%s"}' % (photo.id, im.url, photo.file.url)
+    return '{"photo_id":"%d", "thumbnail_url":"%s", "photo_url":"%s", "action":"%s"}' % (photo.id, im.url, photo.file.url, action)

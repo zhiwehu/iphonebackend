@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from uuid import uuid4
 import os
+from photo.utils import get_photo_info
+
 def get_random_filename(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (str(uuid4()), ext)
@@ -46,9 +48,10 @@ class Profile(models.Model):
         ('M', _(u'Male')),
     )
     user = models.OneToOneField(User, verbose_name=_(u'User'))
-    birthday = models.DateField(verbose_name=_(u'Birthday'), null=True, blank=True)
     gender = models.CharField(max_length=1, null=True, blank=True, verbose_name=_(u'Gender'), choices=GENDER_CHOICE)
     avatar_url = models.URLField(verbose_name=_(u'Avatar URL'), blank=True, null=True)
+    email = models.EmailField(verbose_name=_(u'Email'), default='')
+    city = models.CharField(verbose_name=_(u'City'), max_length=30, blank=True, null=True)
 
 
 class Avatar(TimeStampedModel):
@@ -67,6 +70,28 @@ class Message(TimeStampedModel):
     is_read = models.BooleanField(verbose_name=_(u'Is Read?'), default=False)
     description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
 
+def create_message_by_comment(sender, **kwargs):
+    if kwargs.get('created') is True:
+        comment = kwargs.get('instance')
+        from_user = comment.user
+        to_user = comment.photo.user
+        if from_user.id != to_user.id:
+            Message(from_user=from_user, to_user=to_user, description=get_photo_info(comment.photo, 'comment')).save()
+
+
+def create_message_by_like(sender, **kwargs):
+    if kwargs.get('created') is True:
+        like = kwargs.get('instance')
+        from_user = like.user
+        to_user = like.photo.user
+        if from_user.id != to_user.id:
+            Message(from_user=from_user, to_user=to_user, description=get_photo_info(like.photo, 'like')).save()
+
+
 from tastypie.models import create_api_key
 
 models.signals.post_save.connect(create_api_key, sender=User)
+
+models.signals.post_save.connect(create_message_by_comment, sender=Comment)
+
+models.signals.post_save.connect(create_message_by_like, sender=Like)

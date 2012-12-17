@@ -12,7 +12,7 @@ class LikeAdmin(admin.ModelAdmin):
     list_display = ('user', 'photo', 'created')
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'birthday', 'gender')
+    list_display = ('id', 'user', 'email', 'city', 'gender')
 
 class AvatarAdmin(admin.ModelAdmin):
     list_display = ('id', 'file')
