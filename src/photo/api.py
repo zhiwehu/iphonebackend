@@ -43,7 +43,7 @@ class OwnerAuthorization(DjangoAuthorization):
         return object
 
     def is_authorized(self, request, object=None):
-        if request.method == 'PUT' or request.method == 'PATCH':
+        if request.method == 'PUT' or request.method == 'DELETE' or request.method == 'PATCH':
             object = self.get_object(request)
             if object:
                 try:
@@ -110,7 +110,7 @@ class UserResource(ModelResource):
     profile = fields.OneToOneField(ProfileResource, 'profile', null=True, blank=True, full=True, readonly=True)
 
     class Meta:
-        allowed_methods = ['get', 'put']
+        allowed_methods = ['get', 'put', 'delete']
         queryset = User.objects.all()
         resource_name = 'user'
         #authentication = ReadonlyAuthentication()
