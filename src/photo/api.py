@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import login
 from django.core.urlresolvers import resolve
 from django.db import IntegrityError
+from django.db.models import Count
 
 from relationships.models import Relationship, RelationshipStatus
 from sorl.thumbnail import get_thumbnail
@@ -218,6 +219,39 @@ class PhotoResource(ModelResource):
     def dehydrate_like_count(self, bundle):
         like_count = Like.objects.filter(photo=bundle.obj).count()
         return like_count
+
+    def dehydrate_comment_count(self, bundle):
+        return bundle.obj.comment_set.count()
+
+    def dehydrate_thumbnail(self, bundle):
+        if bundle.obj.file:
+            im = get_thumbnail(bundle.obj.file, '100x100', crop='center', quality=99)
+            return {
+                'file_url': im.url
+            }
+        else:
+            return {
+                'file_url': None
+            }
+
+
+class PopularPhotoResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user', full=True)
+    thumbnail = fields.ApiField(attribute='thumbnail', null=True, blank=True, readonly=True)
+    comment_count = fields.IntegerField(attribute='comment_count', default=0, readonly=True)
+
+    class Meta:
+        allowed_method = ['get']
+        queryset = Photo.objects.annotate(like_count=Count('like')).order_by('-like_count')
+        resource_name = 'popularphoto'
+        authentication = MultiAuthentication(ReadonlyAuthentication(), ApiKeyAuthentication())
+        authorization = OwnerAuthorization()
+        filtering = {
+            'user': ALL_WITH_RELATIONS,
+            'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
+            'is_publish': ALL,
+            }
+        ordering = ['created', 'like_count']
 
     def dehydrate_comment_count(self, bundle):
         return bundle.obj.comment_set.count()
