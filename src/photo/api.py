@@ -213,6 +213,7 @@ class PhotoResource(ModelResource):
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'is_publish': ALL,
         }
+        ordering = ['created', 'like_count', 'comment_count']
 
     def dehydrate_like_count(self, bundle):
         like_count = Like.objects.filter(photo=bundle.obj).count()
