@@ -43,7 +43,9 @@ urlpatterns = patterns('',
     url(r'^api/v1/facebook/connect/$', 'photo.views.api_facebook_connect_by_token', name='api_facebook_connect_by_token'),
     url(r'^api/v1/twitter/connect/$', 'photo.views.api_twitter_connect_by_token', name='api_twitter_connect_by_token'),
 
-    url(r'^api/', include(v1_api.urls))
+    url(r'^api/', include(v1_api.urls)),
+
+    url(r'^terms/$', 'photo.views.terms', name='terms'),
 
 
 )

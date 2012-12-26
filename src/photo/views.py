@@ -33,6 +33,18 @@ def home(request,
     return render_to_response(template, context, context_instance=RequestContext(request))
 
 
+def terms(request,
+         template='terms.html',
+         extra_context=None):
+
+    context = {}
+
+    if extra_context:
+        context.update(extra_context)
+
+    return render_to_response(template, context, context_instance=RequestContext(request))
+
+
 @csrf_exempt
 def api_upload_photo(request):
     if request.method == 'POST':
