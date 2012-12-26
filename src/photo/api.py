@@ -47,9 +47,19 @@ class OwnerAuthorization(DjangoAuthorization):
             object = self.get_object(request)
             if object:
                 try:
-                    if object == request.user or object.user == request.user:
+                    if object == request.user:
                         return True
-                except:
+                except Exception as e:
+                    pass
+                try:
+                    if object.user == request.user:
+                        return True
+                except Exception as e:
+                    pass
+                try:
+                    if object.to_user == request.user:
+                        return True
+                except Exception as e:
                     pass
             return False
         else:
