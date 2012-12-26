@@ -238,6 +238,7 @@ class PhotoResource(ModelResource):
 class PopularPhotoResource(ModelResource):
     user = fields.ForeignKey(UserResource, 'user', full=True)
     thumbnail = fields.ApiField(attribute='thumbnail', null=True, blank=True, readonly=True)
+    like_count = fields.IntegerField(attribute='like_count', default=0, readonly=True)
     comment_count = fields.IntegerField(attribute='comment_count', default=0, readonly=True)
 
     class Meta:
