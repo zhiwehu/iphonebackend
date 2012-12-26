@@ -213,7 +213,7 @@ class PhotoResource(ModelResource):
             'created': ['exact', 'lt', 'lte', 'gte', 'gt'],
             'is_publish': ALL,
         }
-        ordering = ['created', 'like']
+        ordering = ['created']
 
     def dehydrate_like_count(self, bundle):
         like_count = Like.objects.filter(photo=bundle.obj).count()
@@ -265,6 +265,7 @@ class LikeResource(ModelResource):
             'user': ALL_WITH_RELATIONS,
             'photo': ALL_WITH_RELATIONS,
         }
+        ordering = ['created']
 
 
 class RelationshipStatusResource(ModelResource):
