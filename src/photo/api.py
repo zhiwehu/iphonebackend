@@ -314,4 +314,5 @@ class MessageResource(ModelResource):
         filtering = {
             'from_user': ALL_WITH_RELATIONS,
             'to_user': ALL_WITH_RELATIONS,
+            'is_read': ALL
             }
