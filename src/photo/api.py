@@ -104,7 +104,7 @@ class CreateUserResource(ModelResource):
             city = bundle.data.get('city')
             email = bundle.data.get('email')
             gender = bundle.data.get('gender')
-            avatar_url = bundle.data.get('avatar_url')
+            avatar_url = bundle.data.get('avatar_url').split('?')[0]
             Profile.objects.create(user=bundle.obj, city=city, email=email, gender=gender, avatar_url=avatar_url)
 
             return bundle
