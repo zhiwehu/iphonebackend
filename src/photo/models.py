@@ -70,6 +70,10 @@ class Message(TimeStampedModel):
     is_read = models.BooleanField(verbose_name=_(u'Is Read?'), default=False)
     description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
 
+
+class AdminNotification(TimeStampedModel):
+    description = models.TextField(verbose_name=_(u'Description'), max_length=1024)
+
 def create_message_by_comment(sender, **kwargs):
     if kwargs.get('created') is True:
         comment = kwargs.get('instance')
@@ -88,6 +92,15 @@ def create_message_by_like(sender, **kwargs):
             Message(from_user=from_user, to_user=to_user, description=get_photo_info(like.photo, 'like')).save()
 
 
+def create_message_by_admin(sender, **kwargs):
+    if kwargs.get('created') is True:
+        admin_notification = kwargs.get('instance')
+        from_user = User.objects.filter(is_superuser=True)[0]
+        other_users = User.objects.exclude(id=from_user.id)
+        for to_user in other_users:
+            Message(from_user=from_user, to_user=to_user, description=admin_notification.description).save()
+
+
 from tastypie.models import create_api_key
 
 models.signals.post_save.connect(create_api_key, sender=User)
@@ -95,3 +108,5 @@ models.signals.post_save.connect(create_api_key, sender=User)
 models.signals.post_save.connect(create_message_by_comment, sender=Comment)
 
 models.signals.post_save.connect(create_message_by_like, sender=Like)
+
+models.signals.post_save.connect(create_message_by_admin, sender=AdminNotification)
