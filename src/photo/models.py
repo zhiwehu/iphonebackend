@@ -98,7 +98,8 @@ def create_message_by_admin(sender, **kwargs):
         from_user = User.objects.filter(is_superuser=True)[0]
         other_users = User.objects.exclude(id=from_user.id)
         for to_user in other_users:
-            Message(from_user=from_user, to_user=to_user, description=admin_notification.description).save()
+            description = '{"description":"%s", "action":"%s"}' % (admin_notification.description, 'notify')
+            Message(from_user=from_user, to_user=to_user, description=description).save()
 
 
 from tastypie.models import create_api_key
