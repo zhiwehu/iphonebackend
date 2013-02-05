@@ -274,6 +274,7 @@ class CommentResource(ModelResource):
     photo = fields.ForeignKey(PhotoResource, 'photo')
 
     class Meta:
+        always_return_data = True
         queryset = Comment.objects.all().order_by('-created')
         resource_name = 'comment'
         #authentication = ReadonlyAuthentication()
